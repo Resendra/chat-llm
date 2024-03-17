@@ -1,18 +1,29 @@
+@if (isLoading) {
+<div class="loading-state">
+    Loading...
+</div>
+} @else if (hasError) {
+<div class="error-state">
+    Error while loading page, please retry.
+</div>
+} @else {
 <div class="chat-container">
     <div class="toolbar">
         <mat-form-field>
             <mat-label>Model</mat-label>
             <mat-select [(ngModel)]="selectedModel">
                 @for (model of models; track $index) {
-                <mat-option [value]="model.id">{{model.value}}</mat-option>
+                <mat-option [value]="model.id" [disabled]="model.disabled">{{model.value}}</mat-option>
                 }
             </mat-select>
         </mat-form-field>
     </div>
     <div class="chat" #scrollContainer>
+        @if(canLoadMoreMessages) {
         <div class="messages-action">
             <button mat-flat-button color="primary" (click)="loadPreviousMessages()">Load Previous Messages</button>
         </div>
+        }
         <ul class="messages">
             @for(message of messages; track message.id){
             <li>
@@ -57,3 +68,4 @@
         </button>
     </form>
 </div>
+}

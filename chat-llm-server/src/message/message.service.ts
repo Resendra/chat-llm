@@ -3,7 +3,14 @@ import { InjectQueue } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Repository } from 'typeorm';
-import { Feedback, Message, MessageStatus, Owner } from '../shared';
+import {
+  Feedback,
+  Message,
+  MessageStatus,
+  Owner,
+  PaginationParams,
+  getPagination,
+} from '../shared';
 import { CreateMessageDTO } from './create-message.dto';
 
 @Injectable()
@@ -18,22 +25,22 @@ export class MessageService {
     return this.messageRepository.findOneBy({ id });
   }
 
-  async getPaginatedMessages(
+  async getMessagesByChatId(
     chatId: string,
-    page: number = 1,
-    pageSize: number = 50,
-  ): Promise<Message[]> {
+    paginationParams: PaginationParams,
+  ): Promise<{ data: Message[]; total: number }> {
+    const { limit, offset } = getPagination(paginationParams);
+
     const [messages, total] = await this.messageRepository.findAndCount({
       where: { chat: { id: chatId } },
       order: {
         timestamp: 'DESC', // Sorting messages by date in descending order
       },
-      take: pageSize,
-      skip: (page - 1) * pageSize,
+      take: limit,
+      skip: offset,
     });
 
-    console.log(`Total messages in chat: ${total}`);
-    return messages;
+    return { data: messages, total };
   }
 
   async getMessagesFromId(
@@ -41,7 +48,7 @@ export class MessageService {
     lastMessageId: string,
     direction: 'older' | 'newer' = 'older',
     limit: number = 50,
-  ): Promise<Message[]> {
+  ): Promise<{ data: Message[]; total: number }> {
     const comparisonOperator = direction === 'older' ? '<' : '>';
 
     const queryBuilder = this.messageRepository
@@ -54,7 +61,9 @@ export class MessageService {
       .orderBy('message.timestamp', direction === 'older' ? 'DESC' : 'ASC')
       .take(limit);
 
-    return queryBuilder.getMany();
+    const [messages, total] = await queryBuilder.getManyAndCount();
+
+    return { data: messages, total };
   }
 
   async createMessage(createMessageDTO: CreateMessageDTO): Promise<Message[]> {

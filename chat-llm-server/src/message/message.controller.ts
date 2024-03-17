@@ -1,42 +1,89 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { Message } from '../shared';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { Message, Paginated, PaginationParams } from '../shared';
 import { MessageService } from './message.service';
 import { CreateMessageDTO } from './create-message.dto';
-import { UpdateFeedbackDTO } from './update-feedback.dto';
+import { UpdateFeedbackDTO } from './feedback.dto';
 
 @Controller('messages')
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Get('/:chatId')
-  async getPaginatedMessages(
-    @Param('chatId') chatId: string,
-    @Query('page') page: string,
-    @Query('pageSize') pageSize: string,
-  ): Promise<Message[]> {
-    const pageNumber = parseInt(page, 10) || 1;
-    const pageSizeNumber = parseInt(pageSize, 10) || 50;
+  async getMessages(
+    @Param('chatId') chatId?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ): Promise<Paginated<Message>> {
+    const paginationParams: PaginationParams = {
+      page: page ? +page : 1,
+      limit: limit ? +limit : 50,
+    };
 
-    return this.messageService.getPaginatedMessages(
-      chatId,
-      pageNumber,
-      pageSizeNumber,
-    );
+    let result: { data: Message[]; total: number };
+
+    if (chatId) {
+      result = await this.messageService.getMessagesByChatId(
+        chatId,
+        paginationParams,
+      );
+    } else {
+      throw new NotFoundException(
+        'Please provide a chat id to retrieve messages',
+      );
+    }
+
+    return {
+      data: result.data,
+      total: result.total,
+      page: paginationParams.page,
+      limit: paginationParams.limit,
+      totalPages: Math.ceil(result.total / paginationParams.limit),
+    };
   }
 
   @Get('/:chatId/from/:lastMessageId')
-  getMessagesFromId(
+  async getMessagesFromId(
     @Param('chatId') chatId: string,
     @Param('lastMessageId') lastMessageId: string,
     @Query('direction') direction: 'older' | 'newer',
-    @Query('limit') limit: string,
-  ): Promise<Message[]> {
-    return this.messageService.getMessagesFromId(
-      chatId,
-      lastMessageId,
-      direction,
-      parseInt(limit, 10) || 50,
-    );
+    @Query('limit') limit: number,
+  ): Promise<Paginated<Message>> {
+    const paginationParams: PaginationParams = {
+      page: 1,
+      limit: limit ? +limit : 50,
+    };
+
+    let result: { data: Message[]; total: number };
+
+    if (chatId) {
+      result = await this.messageService.getMessagesFromId(
+        chatId,
+        lastMessageId,
+        direction,
+        limit || 50,
+      );
+    } else {
+      throw new NotFoundException(
+        'Please provide a chat id to retrieve messages',
+      );
+    }
+
+    return {
+      data: result.data,
+      total: result.total,
+      page: paginationParams.page,
+      limit: paginationParams.limit,
+      totalPages: Math.ceil(result.total / paginationParams.limit),
+    };
   }
 
   @Post()

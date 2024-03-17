@@ -1,7 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Feedback, Message, Model } from '../shared';
+import {
+  Feedback,
+  Message,
+  Model,
+  Paginated,
+  PaginationParams,
+} from '../shared';
 
 @Injectable({
   providedIn: 'root',
@@ -11,26 +17,22 @@ export class MessageService {
 
   constructor(private http: HttpClient) {}
 
-  getPaginatedMessages(
+  getMessagesByChatId(
     chatId: string,
-    page: number,
-    pageSize: number
-  ): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/${chatId}`, {
-      params: {
-        page: page.toString(),
-        pageSize: pageSize.toString(),
-      },
+    params: PaginationParams
+  ): Observable<Paginated<Message>> {
+    return this.http.get<Paginated<Message>>(`${this.apiUrl}/${chatId}`, {
+      params: { ...params },
     });
   }
 
-  getMessagesFromId(
+  getMessagesByChatIdFromId(
     chatId: string,
     lastMessageId: string,
     direction: 'older' | 'newer' = 'older',
     limit: number = 50
-  ): Observable<Message[]> {
-    return this.http.get<Message[]>(
+  ): Observable<Paginated<Message>> {
+    return this.http.get<Paginated<Message>>(
       `${this.apiUrl}/${chatId}/from/${lastMessageId}`,
       {
         params: { direction, limit: limit.toString() },

@@ -1,4 +1,4 @@
 export enum Model {
   RANDOM_LLM = 'random-llm',
-  GPT4_TURBO = 'gpt4-turbo-preview',
+  GPT4_TURBO = 'gpt-4-turbo-preview',
 }

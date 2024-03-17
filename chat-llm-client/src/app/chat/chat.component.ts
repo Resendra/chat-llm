@@ -17,6 +17,7 @@ import {
   Message,
 } from '../shared';
 import { MessageService } from './message.service';
+import { finalize, tap } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
@@ -43,7 +44,11 @@ export class ChatComponent implements OnInit {
 
   models = [
     { id: Model.RANDOM_LLM, value: this.modelsMap[Model.RANDOM_LLM] },
-    { id: Model.GPT4_TURBO, value: this.modelsMap[Model.GPT4_TURBO] },
+    {
+      id: Model.GPT4_TURBO,
+      value: this.modelsMap[Model.GPT4_TURBO],
+      disabled: true,
+    },
   ];
 
   selectedModel = this.models[0].id;
@@ -54,10 +59,11 @@ export class ChatComponent implements OnInit {
 
   chatId: string | null = null;
 
-  currentPage = 1;
-  pageSize = 50;
+  limit = 50;
 
+  canLoadMoreMessages = false;
   isLoading = false;
+  isLoadingMore = false;
   hasError = false;
 
   @ViewChild('scrollContainer') private scrollContainer?: ElementRef;
@@ -95,61 +101,84 @@ export class ChatComponent implements OnInit {
     });
   }
 
-  loadMessages(loadPrevious = false) {
-    if (loadPrevious) {
-      this.currentPage++;
-    } else {
-      // Reset to first page when chatId changes or component initializes
-      this.currentPage = 1;
-      this.messages = [];
-    }
+  private loadMessages() {
+    this.isLoading = true;
+    // Reset when chatId changes or component initializes
+    this.messages = [];
 
     if (this.chatId) {
       this.messageService
-        .getPaginatedMessages(this.chatId, this.currentPage, this.pageSize)
-        .subscribe((data) => {
-          // Prepend old messages if loading previous, else replace
-          const safeMessages = data.map((item) => {
-            const newItem: SafeMessage = {
-              ...item,
-              content: this.sanitizer.bypassSecurityTrustHtml(item.content),
-            };
-            return newItem;
-          });
+        .getMessagesByChatId(this.chatId, { page: 1, limit: this.limit })
+        .pipe(
+          tap({
+            next: ({ data, total }) => {
+              const safeMessages = data.map((item) => {
+                const newItem: SafeMessage = {
+                  ...item,
+                  content: this.sanitizer.bypassSecurityTrustHtml(item.content),
+                };
+                return newItem;
+              });
 
-          this.messages = loadPrevious
-            ? [...safeMessages, ...this.messages]
-            : safeMessages;
+              this.messages = safeMessages;
 
-          this.messages.sort(
-            (a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp)
-          );
+              this.messages.sort(
+                (a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp)
+              );
 
-          setTimeout(() => this.scrollToBottom());
-        });
+              this.hasError = false;
+              this.canLoadMoreMessages = total > this.messages.length;
+
+              setTimeout(() => this.scrollToBottom());
+            },
+            error: () => {
+              this.hasError = true;
+            },
+          }),
+          finalize(() => {
+            this.isLoading = false;
+          })
+        )
+        .subscribe();
     }
   }
 
   loadPreviousMessages() {
     const oldestMessageId = this.messages[0]?.id;
     if (this.chatId && oldestMessageId) {
+      this.isLoadingMore = true;
+
       this.messageService
-        .getMessagesFromId(this.chatId, oldestMessageId, 'older')
-        .subscribe((newMessages) => {
-          const safeMessages = newMessages.map((item) => {
-            const newItem: SafeMessage = {
-              ...item,
-              content: this.sanitizer.bypassSecurityTrustHtml(item.content),
-            };
-            return newItem;
-          });
+        .getMessagesByChatIdFromId(this.chatId, oldestMessageId, 'older')
+        .pipe(
+          tap({
+            next: ({ data, total }) => {
+              const safeMessages = data.map((item) => {
+                const newItem: SafeMessage = {
+                  ...item,
+                  content: this.sanitizer.bypassSecurityTrustHtml(item.content),
+                };
+                return newItem;
+              });
 
-          this.messages = [...safeMessages, ...this.messages];
+              this.messages = [...safeMessages, ...this.messages];
 
-          this.messages.sort(
-            (a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp)
-          );
-        });
+              this.messages.sort(
+                (a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp)
+              );
+
+              this.hasError = false;
+              this.canLoadMoreMessages = total > this.messages.length;
+            },
+            error: () => {
+              this.hasError = true;
+            },
+          }),
+          finalize(() => {
+            this.isLoadingMore = false;
+          })
+        )
+        .subscribe();
     }
   }
 

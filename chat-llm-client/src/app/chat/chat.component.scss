@@ -72,3 +72,10 @@
 .chat-input button {
   flex-shrink: 0;
 }
+
+.loading-state, .error-state {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
