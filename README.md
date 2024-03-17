@@ -1,6 +1,6 @@
-# ChatLLM: Frontend
+# ChatLLM
 
-This project is the frontend part of a chat application built with Angular. It provides a user interface for llm conversation.
+This project is a chat application to converse with a LLM.
 
 ## Getting Started
 
@@ -10,42 +10,12 @@ These instructions will get you a copy of the project up and running on your loc
 
 - Node.js and npm (Node.js 14+ is recommended)
 - Angular CLI
+- Docker and Docker Compose for running PostgreSQL and Redis
+- NestJS CLI
 
 ```bash
 npm install -g @angular/cli
 ```
-
-## Deploy in dev
-
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Deploy frontend
-
-```bash
-npm start
-```
-
-## Deploy in prod
-
-Not yet implemented !
-
-### ChatLLM: Backend
-
-This project is the backend part of a chat application built with NestJS. It handles real-time messaging logic and interactions with PostgreSQL and Redis.
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development purposes.
-
-### Prerequisites
-
-- Node.js and npm (Node.js 14+ is recommended)
-- Docker and Docker Compose for running PostgreSQL and Redis
-- NestJS CLI
 
 ```bash
 npm install -g @nestjs/cli
@@ -55,24 +25,41 @@ npm install -g @nestjs/cli
 
 ### Install dependencies
 
+From root:
+
 ```bash
+cd chat-llm-client
+npm install
+```
+
+```bash
+cd chat-llm-server
 npm install
 ```
 
 ### Set environment
 
-Copy `environment.template.ts` into `environment.ts`.
+Copy `chat-llm-server/src/environment.template.ts` to `chat-llm-server/src/environment.ts`.
 In dev mode, you won't need to change any properties.
 
 ### Deploy Redis and PostgreSQL (mandatory)
 
 ```bash
+cd chat-llm-server
 docker compose up -d
 ```
 
-### Deploy backend
+### Deploy
+
+From root:
 
 ```bash
+cd chat-llm-client
+npm start
+```
+
+```bash
+cd chat-llm-server
 npm start
 ```
 
