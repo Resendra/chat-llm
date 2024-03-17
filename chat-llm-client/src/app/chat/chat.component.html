@@ -21,7 +21,11 @@
     <div class="chat" #scrollContainer>
         @if(canLoadMoreMessages) {
         <div class="messages-action">
+            @if(isLoadingMore) {
+            <div class="loading-state">Loading...</div>
+            } @else {
             <button mat-flat-button color="primary" (click)="loadPreviousMessages()">Load Previous Messages</button>
+            }
         </div>
         }
         <ul class="messages">
@@ -38,9 +42,16 @@
                     <span>You</span>
                     }
                 </div>
-                <div class="message" [innerHTML]="message.content">
+                @if(message.status === MessageStatus.ON_GOING) {
+                <div class="message loading">
+                    <mat-spinner class="small-spinner"></mat-spinner>
                 </div>
-                @if(message.owner === Owner.SYSTEM) {
+                } @else if (message.status === MessageStatus.ERROR) {
+                <div class="message error">Error while loading content, please retry</div>
+                } @else {
+                <div class="message" [innerHTML]="message.content"></div>
+                }
+                @if(message.owner === Owner.SYSTEM && message.status === MessageStatus.COMPLETED) {
                 <div>
                     <button mat-icon-button [color]="message.feedback === 'THUMB_UP' ? 'primary' : null"
                         aria-label="Thumb up" (click)="thumbUp(message)">

@@ -38,7 +38,7 @@
 }
 
 .messages {
-  display:flex;
+  display: flex;
   flex-direction: column;
   list-style: none;
   padding: 0 20px;
@@ -51,6 +51,11 @@
   border-radius: 20px;
   display: inline-block;
   word-break: break-word;
+
+  &.error {
+    background-color: red;
+    opacity: 0.3;
+  }
 }
 
 .owner {
@@ -73,7 +78,8 @@
   flex-shrink: 0;
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   display: flex;
   flex: 1;
   justify-content: center;

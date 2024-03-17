@@ -1,5 +1,5 @@
 import { SafeHtml } from '@angular/platform-browser';
-import { Feedback, Model, Owner } from '../enums';
+import { Feedback, MessageStatus, Model, Owner } from '../enums';
 
 export interface Message {
   id: string;
@@ -7,6 +7,7 @@ export interface Message {
   owner: Owner;
   model?: Model;
   feedback?: Feedback;
+  status?: MessageStatus;
   timestamp: string;
 }
 

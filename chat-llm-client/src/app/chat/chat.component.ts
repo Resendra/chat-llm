@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import {
   Owner,
   Model,
@@ -15,6 +16,7 @@ import {
   EventService,
   Feedback,
   Message,
+  MessageStatus,
 } from '../shared';
 import { MessageService } from './message.service';
 import { finalize, tap } from 'rxjs';
@@ -30,12 +32,14 @@ import { finalize, tap } from 'rxjs';
     MatButtonModule,
     MatInputModule,
     MatIconModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
 export class ChatComponent implements OnInit {
   Owner = Owner;
+  MessageStatus = MessageStatus;
 
   modelsMap = {
     [Model.RANDOM_LLM]: 'RandomLLM',
@@ -200,7 +204,7 @@ export class ChatComponent implements OnInit {
     this.messageService
       .updateMessageFeedback(
         message.id,
-        !!message.feedback ? null : Feedback.THUMB_UP
+        message.feedback === Feedback.THUMB_UP ? null : Feedback.THUMB_UP
       )
       .subscribe((message) => {
         this.findAndReplaceMessage(message);
@@ -211,7 +215,7 @@ export class ChatComponent implements OnInit {
     this.messageService
       .updateMessageFeedback(
         message.id,
-        !!message.feedback ? null : Feedback.THUMB_DOWN
+        message.feedback === Feedback.THUMB_DOWN ? null : Feedback.THUMB_DOWN
       )
       .subscribe((message) => {
         this.findAndReplaceMessage(message);
