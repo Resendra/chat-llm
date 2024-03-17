@@ -1,0 +1,30 @@
+<mat-drawer-container hasBackdrop="false">
+    <mat-drawer #drawer mode="side" opened="true">
+        <div class="panel">
+            <h2>ChatLLM</h2>
+            <button mat-flat-button aria-label="Create chat" (click)="createChat()">Create Chat</button>
+            @if(chats.length > 0) {
+            @for(chat of chats; track chat.id) {
+            <a mat-button [routerLink]="['/chats', chat.id]" routerLinkActive="active">{{ chat.name }}</a>
+            }
+            } @else {
+            <div class="empty-state">
+                Nothing to see here, yet!
+            </div>
+            }
+
+        </div>
+    </mat-drawer>
+    <mat-drawer-content>
+        <div class="chat-container">
+            <router-outlet></router-outlet>
+        </div>
+        <button class="toggle" mat-icon-button aria-label="Toggle sidebar" (click)="drawer.toggle()">
+            @if(drawer.opened) {
+            <mat-icon>chevron_left</mat-icon>
+            } @else {
+            <mat-icon>chevron_right</mat-icon>
+            }
+        </button>
+    </mat-drawer-content>
+</mat-drawer-container>

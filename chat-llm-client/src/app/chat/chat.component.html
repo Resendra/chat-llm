@@ -1,0 +1,59 @@
+<div class="chat-container">
+    <div class="toolbar">
+        <mat-form-field>
+            <mat-label>Model</mat-label>
+            <mat-select [(ngModel)]="selectedModel">
+                @for (model of models; track $index) {
+                <mat-option [value]="model.id">{{model.value}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div class="chat" #scrollContainer>
+        <div class="messages-action">
+            <button mat-flat-button color="primary" (click)="loadPreviousMessages()">Load Previous Messages</button>
+        </div>
+        <ul class="messages">
+            @for(message of messages; track message.id){
+            <li>
+                <div class="owner">
+                    @if(message.owner === Owner.SYSTEM) {
+                    @if(message.model) {
+                    <span>{{modelsMap[message.model]}}</span>
+                    } @else {
+                    <span>LLM</span>
+                    }
+                    } @else {
+                    <span>You</span>
+                    }
+                </div>
+                <div class="message" [innerHTML]="message.content">
+                </div>
+                @if(message.owner === Owner.SYSTEM) {
+                <div>
+                    <button mat-icon-button [color]="message.feedback === 'THUMB_UP' ? 'primary' : null"
+                        aria-label="Thumb up" (click)="thumbUp(message)">
+                        <mat-icon>thumb_up_off_alt</mat-icon>
+                    </button>
+                    <button mat-icon-button [color]="message.feedback === 'THUMB_DOWN' ? 'primary': null"
+                        aria-label="Thumb down" (click)="thumbDown(message)">
+                        <mat-icon>thumb_down_off_alt</mat-icon>
+                    </button>
+                </div>
+                }
+            </li>
+            }
+        </ul>
+    </div>
+    <form class="chat-input" (ngSubmit)="sendMessage()">
+        <mat-form-field>
+            <textarea matInput [(ngModel)]="newMessage" name="message"
+                (keydown.enter)="$event.preventDefault(); sendMessage()"
+                [placeholder]="'Message ' + modelsMap[selectedModel] + '...'" cdkTextareaAutosize
+                #autosize="cdkTextareaAutosize" cdkAutosizeMinRows="1"></textarea>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" aria-label="Submit message">
+            Send
+        </button>
+    </form>
+</div>
