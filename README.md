@@ -8,7 +8,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-- Node.js and npm (Node.js 14+ is recommended)
+- Node.js and npm (Node.js 20+ is recommended)
 - Angular CLI
 - Docker and Docker Compose for running PostgreSQL and Redis
 - NestJS CLI
